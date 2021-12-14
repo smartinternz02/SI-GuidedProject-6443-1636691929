@@ -1,22 +1,32 @@
 import cv2
 
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
 
 cap=cv2.VideoCapture(0)
 
 while True:
         _, img = cap.read()
-        gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        faces=face_cascade.detectMultiScale(gray,1.1,4)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        for( x,y,w,h) in faces:
-                cv2.rectangle(img,(x,y),(x+w,y+h),(225,0,0),2)
-                cv2.putText(img,'FACE',(x,y-20),cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,255,0),2)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        #faces = face_cascade.detectMultiScale(gray)
+
+        for (x,y,w,h) in faces:
+            cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+            roi_gray = gray[y:y+h, x:x+w]
+            roi_color = img[y:y+h, x:x+w]
+            eyes = eye_cascade.detectMultiScale(roi_gray)
+            for (ex,ey,ew,eh) in eyes:
+                cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
         cv2.imshow('img',img)
 
-        k=cv2.waitKey(30)&0xff
-        if k==27:
-                break
+        k = cv2.waitKey(0)
+        if k == 27:         # wait for ESC key to exit
+            cv2.destroyAllWindows()
+        elif k == ord('s'): # wait for 's' key to save and exit
+            cv2.imwrite('messigray.png',img)
+            cv2.destroyAllWindows()
 
 cap.release()
